@@ -4,8 +4,8 @@ services:
   #PHP Service
   app:
     build:
-      context: .
-      dockerfile: ./docker/Dockerfile
+      context: docker
+      dockerfile: php/Dockerfile
     container_name: php
     restart: unless-stopped
     tty: true
