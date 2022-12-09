@@ -1,8 +1,5 @@
 FROM php:7.4-fpm
 
-# Copy composer.lock and composer.json
-COPY composer.lock composer.json /var/www/
-
 # Set working directory
 WORKDIR /var/www
 
@@ -20,15 +17,15 @@ RUN apt-get update && apt-get install -y \
     git \
     nodejs \
     npm \
-    curl
-
-RUN apt-get install libzip-dev -y
-RUN apt-get install libicu-dev -y
+    curl \
+    libzip-dev \
+    libicu-dev
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install extensions
+# gd need config os libs like jpeg, png path before install
 RUN docker-php-ext-install pdo_mysql zip exif pcntl gd intl
 
 # XDEBUG
@@ -40,18 +37,16 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 RUN composer global require "squizlabs/php_codesniffer=*"
 
 # Add user for laravel application
+# Need pass userid based on each pc by setting on env
 RUN groupadd -g 1000 www
 RUN useradd -u 1000 -ms /bin/bash -g www www
-
-# Copy existing application directory contents
-COPY . /var/www
-
-# Copy existing application directory permissions
-COPY --chown=www:www . /var/www
 
 # Change current user to www
 USER www
 
 # Expose port 9000 and start php-fpm server
 EXPOSE 9000
+
+# Need a entrypoint here to run app migration, create app key and anything else
+
 CMD ["php-fpm"]
